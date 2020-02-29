@@ -4,6 +4,7 @@ Author: Mickael Lehoux
 Email: mickael@lehoux.net
 Based on https://blog.ipswitch.com/managing-windows-system-administration-with-wmi-and-python
 And https://www.activexperts.com/admin/scripts/wmi/python/
+And https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/cimwin32-wmi-providers
 """
 import wmi
 import json
