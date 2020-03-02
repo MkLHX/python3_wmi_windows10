@@ -141,7 +141,8 @@ Getting temperatures depend of the computer
 In certain cases you can use:
     - Win32_TemperatureProbe class or
     - Win32_CurrentTemp class or
-    - Or call OpenHardwareMonitor https://openhardwaremonitor.org/documentation/
+    - Or call OpenHardwareMonitor https://openhardwaremonitor.org/documentation/ or
+    - MSAcpi_ThermalZoneTemperature class
 """
 
 
@@ -164,17 +165,19 @@ def get_all_temperature(cnx):
         print('An exception occured {}'.format(e))
 
 
-def get_all_temperature_OHM():
-    w = wmi.WMI(namespace="root\OpenHardwareMonitor")
-    temperature_infos = w.Sensor()
-    temps = {}
-    i = 0
-    for sensor in temperature_infos:
-        if sensor.SensorType == u'Temperature':
-            print(sensor.Name, sensor.Value)
-            temps[i] = {sensor.Name: sensor.Value}
-        i += 1
-    return json.dumps(temps)
+def get_all_temperature_OHM(wmi_instance):
+    try:
+        temperature_infos = wmi_instance.Sensor()
+        temps = {}
+        i = 0
+        for sensor in temperature_infos:
+            if sensor.SensorType == u'Temperature':
+                print(sensor.Name, sensor.Value)
+                temps[i] = {sensor.Name: sensor.Value}
+            i += 1
+        return json.dumps(temps)
+    except BaseException as e:
+        print('An exception occured {}'.format(e))
 
 
 if __name__ == "__main__":
@@ -203,5 +206,6 @@ if __name__ == "__main__":
     # get_all_processors_data(local_cnx)
     get_all_computer_data(local_cnx)
     # get_all_temperature(local_cnx)
-    get_all_temperature_OHM()
+    w = wmi.WMI(namespace="root\OpenHardwareMonitor")
+    get_all_temperature_OHM(w)
     pass
