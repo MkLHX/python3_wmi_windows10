@@ -34,7 +34,7 @@ def get_all_wmi_methods():
         print('An exception occured {}'.format(e))
 
 
-def get_all_processes(cnx, process=None):
+def get_all_processes(cnx, process_filter=None):
     """
     List all processes for connection passed on argument.
     @param cnx => wmi.WMI() instance
@@ -45,21 +45,30 @@ def get_all_processes(cnx, process=None):
         print("\n\r### list all processes ###\n\r")
         processes = {}
         i = 0
-        # name=process if None is not process else ''
-        for process in cnx.Win32_Process():
-            # print(process)
-            print("ID: {0}\nHandleCount: {1}\nProcessName: {2}\n".format(
-                process.ProcessId, process.HandleCount, process.Name))
-            processes[i] = {'ID': process.ProcessId,
-                            'HandleCount': process.HandleCount,
-                            'ProcessName': process.Name}
-            i += 1
+        if None is process_filter:
+            for process in cnx.Win32_Process():
+                # print(process)
+                print("ID: {0}\nHandleCount: {1}\nProcessName: {2}\n".format(
+                    process.ProcessId, process.HandleCount, process.Name))
+                processes[i] = {'ID': process.ProcessId,
+                                'HandleCount': process.HandleCount,
+                                'ProcessName': process.Name}
+                i += 1
+        else:
+            print("get specific process: %s" % process_filter)
+            for process in cnx.Win32_Process(name="%s" % process_filter):
+                # print(process)
+                print("ID: {0}\nHandleCount: {1}\nProcessName: {2}\n".format(
+                    process.ProcessId, process.HandleCount, process.Name))
+                processes = {'ID': process.ProcessId,
+                             'HandleCount': process.HandleCount,
+                             'ProcessName': process.Name}
         return json.dumps(processes)
     except BaseException as e:
         print('An exception occured {}'.format(e))
 
 
-def get_all_disks_space(cnx, disk=None):
+def get_all_disks_space(cnx, disk_filter=None):
     """
     List all disks free space
     @param cnx => wmi.WMI() instance
@@ -70,19 +79,32 @@ def get_all_disks_space(cnx, disk=None):
         print("\n\r### list all disks space ###\n\r")
         disks = {}
         i = 0
-        # name=disk if None is not disk else ''
-        for disk in cnx.Win32_LogicalDisk():
-            # print(disk)
-            if None is not disk.Size:
-                print("%s(%s) is %.2f%% free, %.2f / %.2f" % (disk.VolumeName, disk.Caption, (100*float(
-                    disk.FreeSpace)/float(disk.Size)), float(disk.FreeSpace), float(disk.Size)))
-                disks[i] = {'disk_volume_name': disk.VolumeName,
-                            'disk_letter': disk.Caption,
-                            'disk_free_space': 100*float(disk.FreeSpace)/float(disk.Size),
-                            'free_space': disk.FreeSpace,
-                            'disk_size': disk.Size,
-                            }
-            i += 1
+        if None is disk_filter:
+            for disk in cnx.Win32_LogicalDisk():
+                # print(disk)
+                if None is not disk.Size:
+                    print("%s(%s) is %.2f%% free, %.2f / %.2f" % (disk.VolumeName, disk.Caption, (100*float(
+                        disk.FreeSpace)/float(disk.Size)), float(disk.FreeSpace), float(disk.Size)))
+                    disks[i] = {'disk_volume_name': disk.VolumeName,
+                                'disk_letter': disk.Caption,
+                                'disk_free_space': 100*float(disk.FreeSpace)/float(disk.Size),
+                                'free_space': disk.FreeSpace,
+                                'disk_size': disk.Size,
+                                }
+                i += 1
+        else:
+            for disk in cnx.Win32_LogicalDisk(name=disk_filter):
+                # print(disk)
+                if None is not disk.Size:
+                    print("%s(%s) is %.2f%% free, %.2f / %.2f" % (disk.VolumeName, disk.Caption, (100*float(
+                        disk.FreeSpace)/float(disk.Size)), float(disk.FreeSpace), float(disk.Size)))
+                    disks[i] = {'disk_volume_name': disk.VolumeName,
+                                'disk_letter': disk.Caption,
+                                'disk_free_space': 100*float(disk.FreeSpace)/float(disk.Size),
+                                'free_space': disk.FreeSpace,
+                                'disk_size': disk.Size,
+                                }
+                i += 1
         return json.dumps(disks)
     except BaseException as e:
         print('An exception occured {}'.format(e))
@@ -157,25 +179,32 @@ def get_all_temperature(cnx):
         temps = {}
         i = 0
         for temp in cnx.Win32_TemperatureProbe():
-            # print(temp)
-            temps[i] = {'temperature': temp}
+            print(temp)
+            # temps[i] = {'temperature': temp}
         i += 1
         return json.dumps(temps)
     except BaseException as e:
         print('An exception occured {}'.format(e))
 
 
-def get_all_temperature_OHM(wmi_instance):
+def get_all_temperature_OHM(cnx, wmi_instance):
     try:
-        temperature_infos = wmi_instance.Sensor()
-        temps = {}
-        i = 0
-        for sensor in temperature_infos:
-            if sensor.SensorType == u'Temperature':
-                print(sensor.Name, sensor.Value)
-                temps[i] = {sensor.Name: sensor.Value}
-            i += 1
-        return json.dumps(temps)
+        ohm_is_present = get_all_processes(cnx, 'OpenHardwareMonitor.exe')
+        if not isinstance(ohm_is_present, dict) and 3 > len(ohm_is_present):
+            print("\n\r##################################\n\r#### You attention please !!! ####\n\r##################################\n\r" +
+                  "Open Hardware Monitor dll is missing! \n\r" +
+                  "go to https: //openhardwaremonitor.org/downloads/ to download it! \n\r" +
+                  "then run it on each machine you need to get data!\n\r")
+        else:
+            temperature_infos = wmi_instance.Sensor()
+            temps = {}
+            i = 0
+            for sensor in temperature_infos:
+                if sensor.SensorType == u'Temperature':
+                    print(sensor.Name, sensor.Value)
+                    temps[i] = {sensor.Name: sensor.Value}
+                i += 1
+            return json.dumps(temps)
     except BaseException as e:
         print('An exception occured {}'.format(e))
 
@@ -188,10 +217,6 @@ if __name__ == "__main__":
     # get_all_wmi_methods()
 
     """
-    Uncomment line to get data you need
-    """
-    # connect to the machine
-    """
     Connect to the local machine
     """
     local_cnx = wmi.WMI()
@@ -201,11 +226,19 @@ if __name__ == "__main__":
     """
     # remote_cnx = wmi.WMI("<machine_ip>", user=r"<user_account>", password="<user_password>")
 
+    """
+    Uncomment line to get data you need
+    """
     # get_all_processes(local_cnx)
-    # get_all_disks_space(local_cnx)
-    # get_all_processors_data(local_cnx)
+    get_all_disks_space(local_cnx)
+    get_all_processors_data(local_cnx)
     get_all_computer_data(local_cnx)
-    # get_all_temperature(local_cnx)
-    w = wmi.WMI(namespace="root\OpenHardwareMonitor")
-    get_all_temperature_OHM(w)
+
+    """
+    Maybe to get temperature you need to test these methods
+    because results depend about hardware
+    """
+    get_all_temperature(local_cnx)
+    get_all_temperature_OHM(local_cnx, wmi.WMI(
+        namespace=r"root\OpenHardwareMonitor"))
     pass
