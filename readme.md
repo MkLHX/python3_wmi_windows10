@@ -1,6 +1,7 @@
 ## get the project
 
-1. download the zip 
+1. download the zip
+
 !['github download button'](https://github.com/MkLHX/python3_wmi_windows10/blob/master/img/img.png)
 
 2. clone the repository

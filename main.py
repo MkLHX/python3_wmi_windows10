@@ -39,6 +39,7 @@ def get_all_processes(cnx, process=None):
     List all processes for connection passed on argument.
     @param cnx => wmi.WMI() instance
     @param process => string filter process name e.g. "chrome.exe" by default None show all processes
+    @return json file
     """
     try:
         print("\n\r### list all processes ###\n\r")
@@ -63,6 +64,7 @@ def get_all_disks_space(cnx, disk=None):
     List all disks free space
     @param cnx => wmi.WMI() instance
     @param disk => string filter disk by root caption e.g. "c:" by default None show all disks space
+    @return json file
     """
     try:
         print("\n\r### list all disks space ###\n\r")
@@ -90,6 +92,7 @@ def get_all_processors_data(cnx):
     """
     List processors data
     @param cnx => wmi.WMI() instance
+    @return json file
     """
     try:
         print("\n\r### list processors data ###\n\r")
@@ -113,6 +116,7 @@ def get_all_computer_data(cnx):
     """
     List computer data
     @param cnx => wmi.WMI() instance
+    @return json file
     """
     try:
         print("\n\r### list computer data ###\n\r")
@@ -132,45 +136,72 @@ def get_all_computer_data(cnx):
         print('An exception occured {}'.format(e))
 
 
-# def get_all_temperature(cnx):
-#     """
-#     List all temperatures
-#     @param cnx => wmi.WMI() instance
-#     """
-#     try:
-#         print("\n\r### list all temperature ###\n\r")
-#         temps = {}
-#         i = 0
-#         for temp in cnx.Win32_TemperatureProbe():
-#             # print(temp)
-#             temps[i] = {}
-#         i += 1
-#     except BaseException as e:
-#         print('An exception occured {}'.format(e))
+"""
+Getting temperatures depend of the computer
+In certain cases you can use:
+    - Win32_TemperatureProbe class or
+    - Win32_CurrentTemp class or
+    - Or call OpenHardwareMonitor https://openhardwaremonitor.org/documentation/
+"""
 
 
-# connect to the machine
-local_cnx = wmi.WMI()
-# remote_cnx = wmi.WMI("13.76.128.231", user=r"prateek", password="P@ssw0rd@123")
-# get_all_wmi_classes()
-# get_all_wmi_methods()
-# get_all_processes(local_cnx)
-# get_all_disks_space(local_cnx)
-# get_all_processors_data(local_cnx)
-# get_all_computer_data(local_cnx)
-# get_all_temperature(local_cnx)
+def get_all_temperature(cnx):
+    """
+    List all temperatures
+    @param cnx => wmi.WMI() instance
+    @return json file
+    """
+    try:
+        print("\n\r### list all temperature ###\n\r")
+        temps = {}
+        i = 0
+        for temp in cnx.Win32_TemperatureProbe():
+            # print(temp)
+            temps[i] = {'temperature': temp}
+        i += 1
+        return json.dumps(temps)
+    except BaseException as e:
+        print('An exception occured {}'.format(e))
 
-# w = wmi.WMI(namespace="root\wmi")
-# temperature_info = w.MSAcpi_ThermalZoneTemperature()[0]
-# print(temperature_info)
+
+def get_all_temperature_OHM():
+    w = wmi.WMI(namespace="root\OpenHardwareMonitor")
+    temperature_infos = w.Sensor()
+    temps = {}
+    i = 0
+    for sensor in temperature_infos:
+        if sensor.SensorType == u'Temperature':
+            print(sensor.Name, sensor.Value)
+            temps[i] = {sensor.Name: sensor.Value}
+        i += 1
+    return json.dumps(temps)
 
 
-# https://openhardwaremonitor.org/documentation/
-# w = wmi.WMI(namespace="root\OpenHardwareMonitor")
+if __name__ == "__main__":
+    """
+    List WMI informations
+    """
+    # get_all_wmi_classes()
+    # get_all_wmi_methods()
 
-# print(w.Sensor())
-# temperature_info = w.Sensor()
-# for sensor in temperature_info:
-#     if sensor.SensorType==u'Temperature':
-#         print(sensor.Name)
-#         print(sensor.Value)
+    """
+    Uncomment line to get data you need
+    """
+    # connect to the machine
+    """
+    Connect to the local machine
+    """
+    local_cnx = wmi.WMI()
+    """
+    Connect to a remote machine on the same network
+    NOTA: instead of pass local_cnx on each method, use remote_cnx
+    """
+    # remote_cnx = wmi.WMI("<machine_ip>", user=r"<user_account>", password="<user_password>")
+
+    # get_all_processes(local_cnx)
+    # get_all_disks_space(local_cnx)
+    # get_all_processors_data(local_cnx)
+    get_all_computer_data(local_cnx)
+    # get_all_temperature(local_cnx)
+    get_all_temperature_OHM()
+    pass
