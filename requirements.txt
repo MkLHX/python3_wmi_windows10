@@ -18,7 +18,7 @@ pyparsing==2.4.6
 pysmi==0.3.4
 pysnmp==4.4.12
 pytest==5.3.5
-pywin32==227
+pywin32==301
 six==1.14.0
 wcwidth==0.1.8
 WMI==1.4.9
