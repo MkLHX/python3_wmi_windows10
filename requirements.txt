@@ -12,7 +12,7 @@ ply==3.11
 py==1.10.0
 pyasn1==0.4.8
 pycodestyle==2.5.0
-pycryptodomex==3.9.7
+pycryptodomex==3.19.1
 pyflakes==2.1.1
 pyparsing==2.4.6
 pysmi==0.3.4
